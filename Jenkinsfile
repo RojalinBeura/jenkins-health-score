@@ -1,12 +1,7 @@
 pipeline {
     agent any
 
-    tools {
-        maven 'MAVEN_HOME'
-    }
-
     stages {
-
         stage('Checkout') {
             steps {
                 git 'https://github.com/RojalinBeura/jenkins-health-score.git'
