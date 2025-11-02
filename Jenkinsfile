@@ -1,39 +1,41 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'MAVEN_HOME'
+    }
+
     stages {
+
         stage('Checkout') {
             steps {
-                echo 'Checking out source code...'
+                git 'https://github.com/RojalinBeura/jenkins-health-score.git'
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build') {
             steps {
-                sh 'docker build -t healthscore-app .'
+                sh 'echo "Building the project..."'
+                sh 'python --version'
             }
         }
 
-        stage('Run OWASP Dependency Check') {
+        stage('Health Scoring') {
             steps {
-                dependencyCheck odcInstallation: 'DefaultODC', additionalArguments: '--scan .'
-        5f81386 (Added odcInstallation for OWASP Dependency Check)
+                sh 'python score_health.py'
             }
         }
 
-        stage('Run Health Scoring Script') {
+        stage('Security Scan') {
             steps {
-                sh 'python3 score_health.py'
+                dependencyCheck additionalArguments: '--scan .', odcInstallation: 'OWASPDC'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
 
-        stage('Publish Report') {
+        stage('Report') {
             steps {
-                publishHTML(target: [
-                    reportDir: 'reports',
-                    reportFiles: 'index.html',
-                    reportName: 'Health & Security Score Report'
-                ])
+                echo 'Build and security analysis complete!'
             }
         }
     }
