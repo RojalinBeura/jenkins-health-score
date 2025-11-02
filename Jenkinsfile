@@ -1,63 +1,64 @@
 pipeline {
     agent any
 
-    environment {
-        // Python virtual environment (optional)
-        PYTHON = '/usr/bin/python3'
-    }
+    stages {
+        stage('Checkout') {
+            steps {
+                echo 'Cloning repository...'
+                git 'https://github.com/RojalinBeura/jenkins-health-score.git'
+            }
+        }
 
-    stage('Build') {
-    steps {
-        echo 'Installing dependencies using virtual environment...'
-        sh '''
-            echo "Creating Python virtual environment..."
-            python3 -m venv venv
-            source venv/bin/activate
-            if [ -f requirements.txt ]; then
-                echo "Installing dependencies..."
-                pip install --no-cache-dir -r requirements.txt
-            else
-                echo "No requirements.txt found"
-            fi
-        '''
-    }
-}
+        stage('Build') {
+            steps {
+                echo 'Installing dependencies using virtual environment...'
+                sh '''
+                    echo "Creating Python virtual environment..."
+                    python3 -m venv venv
+                    source venv/bin/activate
+                    if [ -f requirements.txt ]; then
+                        echo "Installing dependencies..."
+                        pip install --no-cache-dir -r requirements.txt
+                    else
+                        echo "No requirements.txt found"
+                    fi
+                '''
+            }
+        }
 
         stage('Health Scoring') {
             steps {
-                echo 'Running Health Score script...'
+                echo 'Running health scoring...'
                 sh '''
-                    if [ -f score_health.py ]; then
-                        python3 score_health.py
-                    else
-                        echo "No score_health.py found"
-                    fi
+                    source venv/bin/activate
+                    python3 score_health.py
                 '''
             }
         }
 
         stage('Security Scan') {
             steps {
-                echo 'Running Security Scan using OWASP Dependency Check (simulation)...'
+                echo 'Running security scan...'
                 sh '''
-                    echo "Scanning for vulnerabilities..."
-                    sleep 2
-                    echo "No critical vulnerabilities found."
+                    source venv/bin/activate
+                    bandit -r . || true
                 '''
             }
         }
 
         stage('Report') {
             steps {
-                echo 'Generating Report...'
-                sh 'echo "Health and Security report generated successfully."'
+                echo 'Generating final report...'
+                sh '''
+                    echo "Health and Security Scan Completed!"
+                '''
             }
         }
     }
 
     post {
         success {
-            echo '✅ Pipeline executed successfully!'
+            echo '✅ Pipeline completed successfully.'
         }
         failure {
             echo '❌ Pipeline failed. Please check logs.'
