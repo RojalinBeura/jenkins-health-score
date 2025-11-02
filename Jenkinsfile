@@ -6,20 +6,22 @@ pipeline {
         PYTHON = '/usr/bin/python3'
     }
 
-    stages {
-
-        stage('Build') {
-            steps {
-                echo 'Installing dependencies...'
-                sh '''
-                    if [ -f requirements.txt ]; then
-                        pip install --no-cache-dir -r requirements.txt
-                    else
-                        echo "No requirements.txt found"
-                    fi
-                '''
-            }
-        }
+    stage('Build') {
+    steps {
+        echo 'Installing dependencies using virtual environment...'
+        sh '''
+            echo "Creating Python virtual environment..."
+            python3 -m venv venv
+            source venv/bin/activate
+            if [ -f requirements.txt ]; then
+                echo "Installing dependencies..."
+                pip install --no-cache-dir -r requirements.txt
+            else
+                echo "No requirements.txt found"
+            fi
+        '''
+    }
+}
 
         stage('Health Scoring') {
             steps {
