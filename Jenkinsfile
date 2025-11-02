@@ -5,7 +5,8 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo 'Cloning repository...'
-                git 'https://github.com/RojalinBeura/jenkins-health-score.git'
+                git branch: 'main', url: 'https://github.com/RojalinBeura/jenkins-health-score.git'
+'
             }
         }
 
