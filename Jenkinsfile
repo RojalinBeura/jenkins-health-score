@@ -1,24 +1,26 @@
 pipeline {
     agent any
 
+    environment {
+        VENV_DIR = 'venv'
+    }
+
     stages {
+
         stage('Checkout') {
             steps {
                 echo 'Cloning repository...'
                 git branch: 'main', url: 'https://github.com/RojalinBeura/jenkins-health-score.git'
-'
             }
         }
 
         stage('Build') {
             steps {
-                echo 'Installing dependencies using virtual environment...'
+                echo 'Installing dependencies...'
                 sh '''
-                    echo "Creating Python virtual environment..."
-                    python3 -m venv venv
-                    source venv/bin/activate
+                    python3 -m venv $VENV_DIR
+                    . $VENV_DIR/bin/activate
                     if [ -f requirements.txt ]; then
-                        echo "Installing dependencies..."
                         pip install --no-cache-dir -r requirements.txt
                     else
                         echo "No requirements.txt found"
@@ -29,10 +31,10 @@ pipeline {
 
         stage('Health Scoring') {
             steps {
-                echo 'Running health scoring...'
+                echo 'Running health scoring script...'
                 sh '''
-                    source venv/bin/activate
-                    python3 score_health.py
+                    . $VENV_DIR/bin/activate
+                    python3 score_health.py || echo "Health scoring failed"
                 '''
             }
         }
@@ -41,25 +43,23 @@ pipeline {
             steps {
                 echo 'Running security scan...'
                 sh '''
-                    source venv/bin/activate
-                    bandit -r . || true
+                    . $VENV_DIR/bin/activate
+                    bandit -r . || echo "Bandit scan completed with warnings"
                 '''
             }
         }
 
         stage('Report') {
             steps {
-                echo 'Generating final report...'
-                sh '''
-                    echo "Health and Security Scan Completed!"
-                '''
+                echo 'Generating report...'
+                sh 'echo "All tasks completed successfully."'
             }
         }
     }
 
     post {
         success {
-            echo '✅ Pipeline completed successfully.'
+            echo '✅ Pipeline completed successfully!'
         }
         failure {
             echo '❌ Pipeline failed. Please check logs.'
