@@ -17,6 +17,7 @@ pipeline {
         stage('Run OWASP Dependency Check') {
             steps {
                 dependencyCheck odcInstallation: 'DefaultODC', additionalArguments: '--scan .'
+        5f81386 (Added odcInstallation for OWASP Dependency Check)
             }
         }
 
